@@ -765,7 +765,13 @@ function toggleTimer() {
     document.getElementById('startBtn').textContent = '▶ 继续';
     document.getElementById('statusDot').classList.add('inactive');
     document.getElementById('statusText').textContent = '已暂停';
-    addLog('暂停计时', false);
+    const goalSecs = state.goalMinutes * 60;
+const pct = Math.round((state.seconds / goalSecs) * 100);
+const taunts = ['就这？才坚持了 ' + pct + '%，手机戒不掉的 🙄','哇，' + pct + '% 就放弃了，意志力真的很感人呢 😏','才 ' + pct + '%？你的自律呢，掉地上了吗 💀','暂停了？反正你又不是第一次放弃 😒','好好好，又暂停了，手机比目标重要对吧 📱'];
+const tauntMsg = pct >= 100 ? '已完成目标，暂停计时 ✓' : taunts[Math.floor(Math.random() * taunts.length)];
+showToast(tauntMsg);
+addLog('暂停计时 · ' + pct + '% 完成', false);
+
     save();
   } else {
     // Start
