@@ -753,7 +753,8 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 6000);
+
 }
 
 // ── Timer ──────────────────────────────────────────────
@@ -765,12 +766,23 @@ function toggleTimer() {
     document.getElementById('startBtn').textContent = '▶ 继续';
     document.getElementById('statusDot').classList.add('inactive');
     document.getElementById('statusText').textContent = '已暂停';
-    const goalSecs = state.goalMinutes * 60;
+const goalSecs = state.goalMinutes * 60;
 const pct = Math.round((state.seconds / goalSecs) * 100);
-const taunts = ['就这？才坚持了 ' + pct + '%，手机戒不掉的 🙄','哇，' + pct + '% 就放弃了，意志力真的很感人呢 😏','才 ' + pct + '%？你的自律呢，掉地上了吗 💀','暂停了？反正你又不是第一次放弃 😒','好好好，又暂停了，手机比目标重要对吧 📱'];
-const tauntMsg = pct >= 100 ? '已完成目标，暂停计时 ✓' : taunts[Math.floor(Math.random() * taunts.length)];
-showToast(tauntMsg);
+const taunts = [
+  { emoji: '💀😂💀', msg: '就这？才 ' + pct + '%\n手机比自律重要是吧 LMAO' },
+  { emoji: '🤡🎪🤡', msg: '哇哦～' + pct + '% 就撑不住了\n小丑竟是我自己？' },
+  { emoji: '😤📱😤', msg: '又去刷手机了？\n才坚持了 ' + pct + '%，加油啊废物' },
+  { emoji: '👀💅👀', msg: pct + '% 就放弃\n自律这东西跟你没缘分吧' },
+  { emoji: '🙃🔥🙃', msg: '哦～暂停了\n反正你明天也会继续摆烂的' },
+];
+if (pct < 100) {
+  const t = taunts[Math.floor(Math.random() * taunts.length)];
+  document.getElementById('tauntOverlay').querySelector('.taunt-emoji').textContent = t.emoji;
+  document.getElementById('tauntOverlay').querySelector('.taunt-msg').textContent = t.msg;
+  document.getElementById('tauntOverlay').style.display = 'flex';
+}
 addLog('暂停计时 · ' + pct + '% 完成', false);
+
 
     save();
   } else {
@@ -1013,5 +1025,10 @@ function renderAll() {
 load();
 renderAll();
 </script>
-</body>
+</body> <div id="tauntOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+  <div class="taunt-emoji" style="font-size:4rem;margin-bottom:1rem;"></div>
+  <div class="taunt-msg" style="font-size:1.3rem;font-weight:900;color:white;white-space:pre-line;line-height:1.6;margin-bottom:2rem;"></div>
+  <button onclick="document.getElementById('tauntOverlay').style.display='none'" style="background:linear-gradient(135deg,#7c6fef,#ef6f9e);color:white;border:none;padding:1rem 2rem;border-radius:999px;font-size:1rem;font-weight:900;cursor:pointer;">好啦我继续 😤</button>
+</div>
+
 </html>
