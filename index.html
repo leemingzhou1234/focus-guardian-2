@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>专注卫士 · 少玩手机助手</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a3a;
+    --accent: #7c6fef;
+    --accent2: #ef6f9e;
+    --accent3: #6fefb8;
+    --warn: #ef9c6f;
+    --danger: #ef6f6f;
+    --text: #e8e8f0;
+    --text-soft: #7a7a9a;
+    --text-dim: #4a4a6a;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Noto Sans SC', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,111,239,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,111,239,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
+  }
+  .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px; }
+  .orb-2 { width: 300px; height: 300px; background: var(--accent2); bottom: 100px; left: -100px; }
+
+  /* Layout */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 100px;
+  }
+
+  /* Header */
+  header {
+    padding: 2rem 1.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+  .logo-text {
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .logo-sub {
+    font-size: 0.7rem;
+    color: var(--text-soft);
+    font-weight: 400;
+  }
+  .date-badge {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+  }
+
+  /* Section */
+  .section {
+    padding: 0 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Timer card */
+  .timer-card {
+    background: linear-gradient(135deg, #13131a, #1a1325);
+    border-color: rgba(124,111,239,0.3);
+    text-align: center;
+    padding: 2rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .timer-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(124,111,239,0.1), transparent 70%);
+  }
+  .timer-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s infinite;
+  }
+  .status-dot.inactive { background: var(--text-dim); animation: none; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .timer-display {
+    font-family: var(--mono);
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .timer-display.warning { color: var(--warn); }
+  .timer-display.danger { color: var(--danger); animation: shake 0.5s infinite; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+  }
+
+  .timer-goal-text {
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Progress ring */
+  .progress-ring-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+  }
+  .progress-ring-wrap svg {
+    transform: rotate(-90deg);
+  }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+  .ring-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease, stroke 0.5s ease;
+  }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-pct {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .ring-label {
+    font-size: 0.65rem;
+    color: var(--text-soft);
+    margin-top: 0.2rem;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 0.8rem;
+    position: relative;
+    z-index: 1;
+  }
+  .btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9c6fef);
+    color: white;
+  }
+  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+  .btn-danger {
+    background: rgba(239,111,111,0.15);
+    color: var(--danger);
+    border: 1px solid rgba(239,111,111,0.3);
+  }
+
+  /* Goal setting */
+  .goal-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .goal-label { font-size: 0.9rem; color: var(--text-soft); flex: 1; }
+  .goal-value {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 60px;
+    text-align: right;
+  }
+  .slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    margin-top: 0.5rem;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(124,111,239,0.5);
+  }
+
+  /* Check-in */
+  .checkin-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .checkin-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 2px;
+  }
+  .checkin-day .day-name { font-weight: 700; font-size: 0.55rem; }
+  .checkin-day .day-icon { font-size: 0.9rem; }
+  .checkin-day.success {
+    background: rgba(111,239,184,0.1);
+    border-color: rgba(111,239,184,0.4);
+    color: var(--accent3);
+  }
+  .checkin-day.fail {
+    background: rgba(239,111,111,0.08);
+    border-color: rgba(239,111,111,0.2);
+    color: var(--danger);
+  }
+  .checkin-day.today {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .checkin-btn {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: linear-gradient(135deg, var(--accent3), #3fd4a0);
+    color: #0a1a12;
+  }
+  .checkin-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .checkin-btn:disabled {
+    background: var(--surface2);
+    color: var(--text-dim);
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 0.8rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-label {
+    font-size: 0.68rem;
+    color: var(--text-soft);
+  }
+
+  /* Chart */
+  .chart-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 100px;
+    padding-top: 1rem;
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    height: 100%;
+  }
+  .chart-bar-bg {
+    flex: 1;
+    width: 100%;
+    background: var(--surface2);
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s cubic-bezier(.34,1.56,.64,1);
+    min-height: 2px;
+  }
+  .chart-bar.good { background: linear-gradient(to top, var(--accent3), rgba(111,239,184,0.5)); }
+  .chart-bar.bad { background: linear-gradient(to top, var(--danger), rgba(239,111,111,0.5)); }
+  .chart-bar.empty { background: var(--border); }
+  .chart-day-label {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* Motivation */
+  .motivation-card {
+    background: linear-gradient(135deg, rgba(124,111,239,0.1), rgba(239,111,158,0.1));
+    border-color: rgba(124,111,239,0.2);
+    text-align: center;
+  }
+  .motivation-emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+  .motivation-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .motivation-author {
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    margin-top: 0.5rem;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    padding: 0.8rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { font-size: 1.2rem; }
+  .nav-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* Pages */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    z-index: 200;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Log list */
+  .log-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-size: 0.82rem;
+  }
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .log-dot.good { background: var(--accent3); }
+  .log-dot.bad { background: var(--danger); }
+  .log-time { color: var(--text-soft); font-family: var(--mono); font-size: 0.75rem; }
+  .log-msg { flex: 1; color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="toast" id="toast"></div>
+
+<div class="app">
+
+  <!-- Page: 计时器 -->
+  <div class="page active" id="page-timer">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">🛡️</div>
+        <div>
+          <div class="logo-text">专注卫士</div>
+          <div class="logo-sub">少玩手机助手</div>
+        </div>
+      </div>
+      <div class="date-badge" id="headerDate"></div>
+    </header>
+
+    <div class="section">
+      <div class="section-label">今日计时</div>
+      <div class="card timer-card">
+        <div class="timer-status">
+          <span class="status-dot inactive" id="statusDot"></span>
+          <span id="statusText">尚未开始</span>
+        </div>
+
+        <div class="progress-ring-wrap">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="52"/>
+            <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"
+              stroke="url(#ringGrad)"
+              stroke-dasharray="326.7"
+              stroke-dashoffset="326.7"/>
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c6fef"/>
+                <stop offset="100%" stop-color="#6fefb8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-pct" id="ringPct">0%</div>
+            <div class="ring-label">已用</div>
+          </div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <div class="timer-goal-text" id="timerGoalText">目标：未设定</div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">▶ 开始计时</button>
+          <button class="btn btn-secondary" onclick="resetTimer()">↺ 重置</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">设定目标</div>
+      <div class="card">
+        <div class="goal-row">
+          <div class="goal-label">每日目标时长</div>
+          <div class="goal-value" id="goalDisplay">60 分钟</div>
+        </div>
+        <input type="range" class="slider" id="goalSlider" min="15" max="240" step="15" value="60" oninput="updateGoal(this.value)">
+        <div style="display:flex;justify-content:space-between;margin-top:0.4rem;">
+          <span style="font-size:0.65rem;color:var(--text-dim)">15分</span>
+          <span style="font-size:0.65rem;color:var(--text-dim)">4小时</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">每日打卡</div>
+      <div class="card">
+        <div class="checkin-grid" id="weekGrid"></div>
+        <button class="checkin-btn" id="checkinBtn" onclick="doCheckin()">✓ 今日打卡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page: 统计 -->
+  <div class="page" id="page-stats">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">📊</div>
+        <div>
+          <div class="logo-text">我的数据</div>
+          <div class="logo-sub">过去 7 天</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-label">总览</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statStreak" style="color:var(--accent)">0</div>
+          <div class="stat-label">连续打卡</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSuccess" style="color:var(--accent3)">0</div>
+          <div class="stat-label">达标天数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRate" style="color:var(--accent2)">0%</div>
+          <div class="stat-label">本周达标率</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">本周使用时长（分钟）</div>
+      <div class="card">
+        <div class="chart-wrap" id="weekChart"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">动力语录</div>
+      <div class="card motivation-card">
+        <div class="motivation-emoji" id="motEmoji"></div>
+        <div class="motivation-text" id="motText"></div>
+        <div class="motivation-author" id="motAuthor"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page: 记录 -->
+  <div class="page" id="page-log">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">📋</div>
+        <div>
+          <div class="logo-text">使用记录</div>
+          <div class="logo-sub">历史日志</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-label">最近记录</div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <div class="section" style="margin-top:1rem;">
+      <button class="btn btn-danger" style="width:100%;padding:1rem;" onclick="clearData()">🗑️ 清除所有数据</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchPage('timer', this)">
+    <span class="nav-icon">⏱️</span>
+    <span class="nav-label">计时</span>
+  </button>
+  <button class="nav-item" onclick="switchPage('stats', this)">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">统计</span>
+  </button>
+  <button class="nav-item" onclick="switchPage('log', this)">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">记录</span>
+  </button>
+</nav>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let state = {
+  running: false,
+  seconds: 0,
+  goalMinutes: 60,
+  checkins: {}, // date -> {checked, minutes}
+  logs: [],
+  timerInterval: null
+};
+
+const QUOTES = [
+  { emoji: '💪', text: '每一次放下手机，都是对自己意志力的一次锻炼。', author: '专注卫士' },
+  { emoji: '🌱', text: '小小的自律，日积月累，终将开出改变生活的花。', author: '专注卫士' },
+  { emoji: '🧘', text: '你控制手机的时间，就是你掌控生活的时间。', author: '专注卫士' },
+  { emoji: '🚀', text: '那些不刷手机的时间，正在悄悄地把你和别人拉开距离。', author: '专注卫士' },
+  { emoji: '⭐', text: '真正的休息不是刷手机，而是让大脑真正放松。', author: '专注卫士' },
+  { emoji: '🔥', text: '坚持 21 天，你会发现一个不一样的自己。', author: '心理学研究' },
+];
+
+const DAYS = ['日', '一', '二', '三', '四', '五', '六'];
+
+// ── Save/Load ──────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('fc_state', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem('fc_state');
+    if (s) {
+      const parsed = JSON.parse(s);
+      state.goalMinutes = parsed.goalMinutes || 60;
+      state.checkins = parsed.checkins || {};
+      state.logs = parsed.logs || [];
+      // Reset timer on load
+      state.running = false;
+      state.seconds = 0;
+    }
+  } catch(e) {}
+}
+
+// ── Helpers ────────────────────────────────────────────
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function formatTime(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Timer ──────────────────────────────────────────────
+function toggleTimer() {
+  if (state.running) {
+    // Pause
+    clearInterval(state.timerInterval);
+    state.running = false;
+    document.getElementById('startBtn').textContent = '▶ 继续';
+    document.getElementById('statusDot').classList.add('inactive');
+    document.getElementById('statusText').textContent = '已暂停';
+    addLog('暂停计时', false);
+    save();
+  } else {
+    // Start
+    state.running = true;
+    document.getElementById('startBtn').textContent = '⏸ 暂停';
+    document.getElementById('statusDot').classList.remove('inactive');
+    document.getElementById('statusText').textContent = '计时中…';
+    state.timerInterval = setInterval(() => {
+      state.seconds++;
+      updateTimerUI();
+    }, 1000);
+    addLog('开始计时', true);
+  }
+}
+
+function resetTimer() {
+  if (state.running) {
+    clearInterval(state.timerInterval);
+    state.running = false;
+  }
+  state.seconds = 0;
+  document.getElementById('startBtn').textContent = '▶ 开始计时';
+  document.getElementById('statusDot').classList.add('inactive');
+  document.getElementById('statusText').textContent = '尚未开始';
+  updateTimerUI();
+  addLog('重置计时器', false);
+  save();
+}
+
+function updateTimerUI() {
+  const el = document.getElementById('timerDisplay');
+  el.textContent = formatTime(state.seconds);
+
+  const goalSecs = state.goalMinutes * 60;
+  const pct = Math.min(100, Math.round((state.seconds / goalSecs) * 100));
+
+  // Color
+  el.className = 'timer-display';
+  if (pct >= 100) el.classList.add('danger');
+  else if (pct >= 80) el.classList.add('warning');
+
+  // Ring
+  const circumference = 326.7;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('ringFill').style.strokeDashoffset = offset;
+  document.getElementById('ringPct').textContent = pct + '%';
+
+  document.getElementById('timerGoalText').textContent =
+    `目标：${state.goalMinutes} 分钟 · 剩余 ${Math.max(0, state.goalMinutes - Math.floor(state.seconds/60))} 分钟`;
+
+  // Alert at goal
+  if (state.seconds === goalSecs) {
+    showToast('⚠️ 已达到今日目标时长！');
+  }
+}
+
+// ── Goal ──────────────────────────────────────────────
+function updateGoal(val) {
+  state.goalMinutes = parseInt(val);
+  document.getElementById('goalDisplay').textContent = val + ' 分钟';
+  updateTimerUI();
+  save();
+}
+
+// ── Check-in ──────────────────────────────────────────
+function doCheckin() {
+  const key = todayKey();
+  if (state.checkins[key]?.checked) return;
+  const mins = Math.floor(state.seconds / 60);
+  const success = mins <= state.goalMinutes;
+  state.checkins[key] = { checked: true, minutes: mins, success };
+  addLog(`打卡成功 · 今日使用 ${mins} 分钟 · ${success ? '✓ 达标' : '✗ 超时'}`, success);
+  showToast(success ? '🎉 打卡成功！今日达标！' : '📝 打卡完成，明天加油！');
+  renderWeekGrid();
+  updateCheckinBtn();
+  save();
+}
+
+function updateCheckinBtn() {
+  const btn = document.getElementById('checkinBtn');
+  const key = todayKey();
+  if (state.checkins[key]?.checked) {
+    btn.disabled = true;
+    btn.textContent = '✓ 今日已打卡';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '✓ 今日打卡';
+  }
+}
+
+function renderWeekGrid() {
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const dayName = DAYS[d.getDay()];
+    const isToday = i === 0;
+    const data = state.checkins[key];
+
+    let cls = 'checkin-day';
+    let icon = '—';
+    if (data?.checked) {
+      cls += data.success ? ' success' : ' fail';
+      icon = data.success ? '✓' : '✗';
+    } else if (isToday) {
+      cls += ' today';
+      icon = '今';
+    }
+
+    grid.innerHTML += `
+      <div class="${cls}">
+        <span class="day-name">${dayName}</span>
+        <span class="day-icon">${icon}</span>
+      </div>`;
+  }
+}
+
+// ── Stats ──────────────────────────────────────────────
+function renderStats() {
+  const today = new Date();
+  let streak = 0, success = 0, total = 0;
+  const chartData = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const dayName = DAYS[d.getDay()];
+    const data = state.checkins[key];
+    chartData.push({ day: dayName, data, key });
+    if (data?.checked) {
+      total++;
+      if (data.success) success++;
+    }
+  }
+
+  // Streak (from today backwards)
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    if (state.checkins[key]?.checked) streak++;
+    else break;
+  }
+
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('statSuccess').textContent = success;
+  document.getElementById('statRate').textContent = total > 0 ? Math.round(success/total*100) + '%' : '0%';
+
+  // Chart
+  const chart = document.getElementById('weekChart');
+  chart.innerHTML = '';
+  const maxMins = Math.max(state.goalMinutes, ...chartData.map(d => d.data?.minutes || 0), 30);
+  chartData.forEach(({ day, data }) => {
+    const mins = data?.minutes ?? null;
+    const height = mins !== null ? Math.max(4, Math.round((mins / maxMins) * 100)) : 0;
+    const cls = mins === null ? 'empty' : (mins <= state.goalMinutes ? 'good' : 'bad');
+    chart.innerHTML += `
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-bg">
+          <div class="chart-bar ${cls}" style="height:${height}%"></div>
+        </div>
+        <div class="chart-day-label">${day}</div>
+      </div>`;
+  });
+
+  // Quote
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('motEmoji').textContent = q.emoji;
+  document.getElementById('motText').textContent = q.text;
+  document.getElementById('motAuthor').textContent = '— ' + q.author;
+}
+
+// ── Log ───────────────────────────────────────────────
+function addLog(msg, good) {
+  const now = new Date();
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  state.logs.unshift({ msg, good, time, date: todayKey() });
+  if (state.logs.length > 50) state.logs = state.logs.slice(0, 50);
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  if (state.logs.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem;padding:1rem 0;text-align:center;">暂无记录</div>';
+    return;
+  }
+  list.innerHTML = state.logs.map(l => `
+    <div class="log-item">
+      <div class="log-dot ${l.good ? 'good' : 'bad'}"></div>
+      <div class="log-msg">${l.msg}</div>
+      <div class="log-time">${l.time}</div>
+    </div>`).join('');
+}
+
+function clearData() {
+  if (!confirm('确定要清除所有数据吗？')) return;
+  state.checkins = {};
+  state.logs = [];
+  state.seconds = 0;
+  state.running = false;
+  clearInterval(state.timerInterval);
+  save();
+  renderAll();
+  showToast('✓ 数据已清除');
+}
+
+// ── Navigation ─────────────────────────────────────────
+function switchPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'stats') renderStats();
+  if (name === 'log') renderLog();
+}
+
+// ── Date header ────────────────────────────────────────
+function updateDateHeader() {
+  const d = new Date();
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('headerDate').textContent =
+    `${d.getFullYear()} ${months[d.getMonth()]} ${d.getDate()}日`;
+}
+
+// ── Init ───────────────────────────────────────────────
+function renderAll() {
+  updateDateHeader();
+  document.getElementById('goalSlider').value = state.goalMinutes;
+  document.getElementById('goalDisplay').textContent = state.goalMinutes + ' 分钟';
+  updateTimerUI();
+  renderWeekGrid();
+  updateCheckinBtn();
+}
+
+load();
+renderAll();
+</script>
+</body>
+</html>
